@@ -1,0 +1,603 @@
+ Suyi Liu
+ sliu92@jhu.edu
+ Project3 design
+
+ Program overview:
+
+ The program aims to make the acquiring
+ and manipulating data in a repository 
+ to be more efficient than the previous
+ sorted or unsorted single line lists.
+ I extract some of elements according to
+ a certain percentage to construct upper
+ levels for several times, so everytime I
+ am looking for an element, I can skip 
+ some of the elements that are definitely
+ not belonging to the parts that I am 
+ looking for. Every level of the super
+ list must be sorted.
+
+ The entire program consists of three
+ parts: driver program, superlist program
+ and random generator. Superlist and 
+ random generator both contain .h file
+ that list all the methods to use in 
+ corresponding .c files.
+
+ sl_repository: It builds up a super linked 
+ list with the number of elements of a
+ higher level always in a certain percentage
+ of the number of elements of the level 
+ below. The overall data structure are
+ sorted linked lists. You can always find
+ elements that exist in higher levels in
+ levels lower than that level. It can 
+ perform update, delete, get and print in 
+ the super list.
+ 
+ In repository, each element consists of
+ a key, a pointer to data, a pointer to 
+ its next element and a pointer to its lower 
+ level element with same key. Each element
+ also have an int pointer, pointing to
+ its repetiton in the list, which means 
+ in how many layers it exists. Everytime a
+ new element is constructed, r is 1.
+ 
+ I also initialize an int representing size 
+ of my array which might be created in insert 
+ function, called arraysize. This variable 
+ also represents how many levels I have in
+ my super list, because whenever I have to
+ insert a new element, I store exactly one
+ element pointer from one level into the 
+ array of pointers.
+ 
+ I also create a dummy head before the head
+ of the highest level of super list. When
+ a new level is constructed, a new dummy 
+ head is also constructed at the beginning
+ of the list, so every level has a dummy
+ head, which is good for traversing, 
+ especially when a new element is inserted
+ before the first real element of a level.
+
+ I created an int prob representing the 
+ percentage of elements in the lower level
+ that are also in the higher level. It is
+ used when judging if a new level should 
+ be constructed.
+ 
+ I have an int named size counting how many
+ elements are in the bottom level so far.
+ This is used to represent number of unique
+ records in the super list.
+ 
+ I have a maximun variable representing 
+ max level that can be created. I calculate
+ in this project, if p is 75 and max range
+ is 10000, the number of levels is about
+ 30, which is the highest possible so far.
+ I set this up to prevent from infinite 
+ constructing if probability = 100.
+
+ There's a counter that increases itself
+ by 1 whenever a pointer is pointing to 
+ a different element. It is used to show
+ how much effort taken so far.
+ 
+ driver: driver program takes command line
+ inputs, but it will also work if any
+ command line input is missing, using 
+ default values. It also prints the list 
+ according to different parameters.
+ The program exits after completeing the
+ operations. 
+
+ I set range, number of operations, seed
+ and probability to be global variables
+ and inserted a usage method which reads
+ user's input and store those values into
+ parameter addresses.
+ 
+ Function overview:
+
+ void_repository_init:
+ Initializes a repository. set size to 
+ zero, and set step counter to zero.
+ I set number of levels to 1 by default.
+ I also malloc memory for static pointer
+ to dummy head.
+
+ int repository_update:
+
+ This method is separated into two parts:
+ first search to see if the element exists,
+ second insert if the element doesn't 
+ exist.
+ Searching:
+ In the first layer, I traverse the list 
+ till its bottom level. In the second layer,
+ I traverse it horizontally.
+ I initialize a temp pointer 
+ pointing to dummy head. It goes to its
+ next first, if its next is smaller than
+ parameter key, it keeps going to its next.
+ I increase the counter.
+ If its next element equals parameter key,
+ its next element updates the data stored.
+ I do this by changing the value in the 
+ data pointer. I only have to change once,
+ since all pointers are pointing to the
+ data in the same address. Then I return 0.
+ If its next element is larger than 
+ parameter key or doesn't exist(which means 
+ temp has reached the end of the list), it 
+ goes down, and the address of turining 
+ point is stored in the array of pointers.
+ I increase the counter by one as well.
+ To prevent temp from going down twice,
+ I write go down instruction outside 
+ second layer and write break inside
+ every condition.
+ In the end, if temp element does not have
+ its next element, or its next element is
+ larger than the key, the key doesn't exist.
+ If in the bottom level, temp's next is
+ null or temp's next is larger than the
+ key, I store temp into the array.
+ 
+ Inserting:
+ If the element doesn't exist, I insert
+ it into the super list. I insert a new
+ element after some of the elements that
+ are stored in the array(where they are
+ supposed to be).
+ I must insert it into the bottom level.
+ So I used do while loops to make sure it
+ is executed at least once.
+ As for whether I should insert it in the
+ upper levels, I call rand100, if it is
+ less than the p, I insert it, if it starts
+ to be larger than the p, I stop inserting
+ it to higher levels. This makes roughly
+ probability/100 elements are inserted to
+ a new level every 100 insertions.
+ When something went wrong in malloc, I 
+ return -1 reporting problem. 
+ When inserting, I make the new
+ element point to array element's next.
+ Then I make my array element point to
+ the new element. I also make new element
+ point to the last element I inserted. 
+ (as stored last time as telement)
+ The data stored in these new elements 
+ should be the same, so I  just make them 
+ point to same address storing the same 
+ data(except for the bottom element, 
+ where I malloc memory for the data
+ integer and initialize data stored).
+ I increase the number stored in r pointer
+ by 1, showing it is repeating.
+ Also when the element is inserted to every 
+ current levels, I still keep judging to 
+ see if a new level will be 
+ constructed above the currently highest
+ level. If there is a need to construct a
+ new level, I make a new dummy head which 
+ is the same as dummy head, named nelement.
+ I also malloc memory for it. I make
+ it point to element being inserted, then 
+ I set its down to the old dummyhead, and 
+ then  I move dummy head pointer to point 
+ to this new dummyhead. Also pelement's 
+ data is syncronized as telement's, and
+ its repetition is increased as well.
+ I make pelement point to its lower level
+ self as well, by using the telement
+ pointer. Everytime a new level is built,
+ I increase arraysize variable.
+ Finally I increase size variable by 1,
+ indicating a new unique record is added,
+ and return 1 after the process is 
+ completed.
+ 
+ int repository_delete(int key):
+ 
+ I traverse the list to its bottom
+ level. I initialize a temp pointer 
+ pointing to dummy head. It goes to its
+ next first, if its next is smaller than
+ parameter key, it keeps going to next.
+ And I increase the counter.
+ If its next element equals parameter key,
+ I delete its next element and then go 
+ down. Specifically, I store element 
+ pointer pelement as the item to be
+ deleted. Then I set temp pointer's next
+ element to be pelement's next. Then I
+ free pelement's memory and set pelement
+ to NULL. Also under this case, I check
+ if there is no real element in this line
+ now. If now, I free this line by making
+ temph pointer pointing to useless dummy
+ head. Then I make temp pointer pointing
+ to its down. After that I check if temph 
+ is freed, if not, I free it. I have to 
+ check it here since temp is also going 
+ down in the case that temp doesn't have
+ next element or have larger next 
+ element. When a level is freed, I
+ decrease number of levels by 1.
+ And I increase the counter after each 
+ step that a pointer is pointing to
+ another element in the list.
+ If its next element is larger than 
+ parameter key or doesn't exist, I keep
+ going down without deleting anything.
+ I increase the counter as well.
+ If in the end, temp element does
+ not have its next element, or its next
+ element is larger than the key, the key
+ doesn't exist. 
+ 
+ To prevent from the method stopping to
+ perform, I initialize an int result,
+ It is set to 0 by default.
+ setting its value without returning it. 
+ I return this int in the end of method.
+ If an element is deleted, I set result
+ to 1, showing deletion is successful.
+ If such element doesn't exist, result
+ remains 0 and is returned.
+ 
+ int repository_get(int key, int *data):
+ 
+ I also traverse through the list. In
+ the first layer, I check if temp equals
+ to NULL. If it is null, it means temp
+ has hit below the bottom of super list.
+ If the temp's next element is larger 
+ than the key, I go down, increase the
+ counter. If temp's next element is 
+ null, which means it is the end of the
+ list horizontally, I go down as well,
+ increase the counter. 
+ To prevent temp from going down twice,
+ I write go down instruction outside 
+ second layer and write break inside
+ every condition.
+ If temp's next
+ element equals key, I store the value
+ of the data address into the parameter
+ and return 1. If the temp's next is
+ smaller than the key, I continue to
+ traverse horizontally, increasing the
+ counter. Finally, if no 1 was returned,
+ I return 0, indicating the expected
+ element was not found.
+  
+ int repository_print(int print_elements):
+ 
+ I print the size first, representing
+ number of unique records in the list.
+ 
+ I set up an array that can store the 
+ number of elements of each level.
+ I set them to be 0 at first.
+
+ I make temp pointer pointing to 
+ dummyhead of top level first.
+ I make temp1 pointer pointing to
+ temp every time temp jumps down.
+ I use temp1 to count how many elements
+ there are in the level.
+ In the end, I check if temp has down,
+ if it doesn't have down, I won't move
+ it, since I have to use the dummyhead
+ of bottom level later.
+
+ Then I print number of elements in 
+ each level. Note that level 1 
+ represents top level, and as level
+ number increases, it means lower level.
+
+ Now I traverse through the bottom level.
+ I have one pointer, temp which points to 
+ the real listhead of bottom level. If
+ print_elements equals 2, I print the
+ key and data in each level, If print_
+ elements equals 1, I only print the 
+ bottom level.
+ 
+ In order to make the printing message
+ look nice, I print the entire list 
+ vertically. The leftmost vertical line
+ represents the bottom level, the right
+ lines show the upper levels. How many 
+ repetitions of the element are in the
+ super list, how many times I will print
+ it in the line. In this case, I only
+ have to traverse through the bottom 
+ level.
+
+ I print counter in the end, showing
+ how much effort I have spent so far.
+
+
+ 
+ Result: 
+  
+ Task 2.
+
+ 1.d:
+ -r 1000 -o 10000000:
+
+ seed1: 
+ steps = 206605469 size = 493
+
+ seed2:
+ steps = 206472978 size = 502
+
+ seed3: 
+ steps = 206465836 size = 486
+
+ seed4:
+ steps = 206428106 size = 493
+ 
+ seed5:
+ steps = 206643019 size = 487
+
+ average:
+ steps = 206523081 size = 492
+ 
+ 
+ 1.e:
+ -r 1000 -o 100000000:
+
+ seed1: 
+ steps = 2073137774 size = 489
+
+ seed2:
+ steps = 2074103769 size = 498
+
+ seed3: 
+ steps = 2076094686 size = 506
+
+ seed4:
+ steps = 2073372465 size = 506
+ 
+ seed5:
+ steps = 2074139463 size = 482
+
+ average:
+ steps = 2074169631 size = 496
+ 
+ 1.f:
+ -r 10000 -o 20000000:
+
+ seed1: 
+ steps = 562645037 size = 5004
+
+ seed2:
+ steps = 562845070 size = 4878
+
+ seed3: 
+ steps = 563599848 size = 4985
+
+ seed4:
+ steps = 561628711 size = 5052
+ 
+ seed5:
+ steps = 557961915 size = 5057
+
+ average:
+ steps = 561736116 size = 4995
+ 
+ Analysis for task 2:
+ 
+ probability of update: 25%
+ probability of delete: 25%
+ probability of get:    50%
+
+ suppose the range of operation is N,
+ then the average size of the list is
+ N/2 = n.
+
+ During update, chance of the element that is
+ already in the list is 50%.
+ chance of element that is not in the list is 50%.
+
+ Note that everytime we want to find an element,
+ we traverse the list level by level, one element 
+ per level. So we have to calculate how many levels 
+ there are in the superlist. And also while going 
+ down, temp is also going from left to right. 
+ I make counter increase by one when a pointer
+ in the array points to the list element as well.
+ So the sum of going down and going right and array
+ pointers shows steps performed.
+
+ If the element is in the list, we have to traverse 
+ down log(100/probability)n levels on average.
+ Since the element of lower level is always 
+ (probability/100) times the number of elements
+ in the higher level. And the highest level
+ approximately has 1 element. 
+ Because a huge portion of elements are in the
+ bottom level, if not, still a huge portion of 
+ elements are in the first higher level or second
+ higher level, so no huge difference if we traverse
+ one or two less levels. And on average, we go
+ right log(100/probability)n * (100/probability - 1) 
+ steps, if the elements
+ are distributed evenly, since I select n/(100/prob)
+ elements among 100/prob blocks first, then I select
+ [n/(100/prob)]/(100/prob) elements, etc.
+ But everytime I select my range from these blocks, 
+ I have to traverse 100/probability -1
+ elements in that block of (100/prob) sub blocks.
+ How many levels of lists I have, how many array
+ of pointers I use, so I add log(100/probability)n
+ as well. 
+ For every insert, I increase counter by two
+ at least to insert my element in the bottom level.
+ So in total, the counter increases
+ (100/probability+1)*log(100/probability)n+2 times 
+ per update operation if the element is in the list.
+ (base = 100/probability)
+
+ If it is not in the list, we still have to traverse
+ till the right end of bottom level to make sure the
+ element is not in the bottom level of super list.
+ That's also (100/probability)*log(100/probability)n 
+ steps per update operation.
+
+ During deletion, chance of the element that is
+ already in the list is 50%.
+ chance of element not in the list is 50%.
+
+ Very similar to update:
+ If it is in the list, we have to traverse 
+ log(100/probability)n levels to go down and 
+ log(100/probability)n * (100/probability-1) 
+ elements on average to go right as well.
+ Note I increase my counter twice when I'm 
+ deleting an element, sice pelement points
+ to temp and temp's next points to somewhere
+ else.
+ So in total, the counter increases
+ (100/probability+1)*log(100/probability)n times per 
+ update operation if the element is in the list.
+ (base = 100/probability)
+
+ If it is not in the list, we have to traverse
+ log(100/probability)n levels to go down,
+ and (100/probability-1)*log(100/probability)n 
+ elements to go right at the same time to make 
+ sure the element is not in the bottom level of 
+ the super list.
+ So (100/probability)*log(100/probability)n steps
+ per delete operation if element is not in the
+ list.
+
+ It is the same for get method:
+
+ Chance of the element that is
+ already in the list is 50%.
+ chance of element that is not in the list is 50%.
+
+ If it is in the list, we have to traverse 
+ log(100/probability)n levels to go down and 
+ (100/probability-1)*log(100/probability)n 
+ elements on average to go right as  well.
+ If it is not in the list, we have to traverse
+ log(100/probability)n levels to go down,
+ and (100/probability-1)*log(100/probability)n 
+ elements to go right at the same time to make 
+ sure the element is not 
+ in the bottom level of the super list.
+ So (100/probability)*log(100/probability)n steps
+ per get operation. 
+
+ So as a result, we have to traverse 
+  [1/2*((100/prob+1)*log(100/prob)n+2) + 
+   1/2*(100/prob)*log(100/prob)n]*1/4
+ +[1/2*(100/prob+1)*log(100/prob)n + 
+   1/2*(100/prob)*log(100/prob)n]*1/4
+ +[1/2*(100/prob)*log(100/prob)n + 
+   1/2*(100/prob)*log(100/prob)n]*1/2
+ = (100/prob) * [log(100/prob) of n]+1/4
+ = (100/prob+1/4) * log(100/prob)(N/2)
+ 
+ (prob is probability for short) 
+
+ So every operation, there are 
+ (100/prob+0.25)*log(100/prob)(N/2)
+ steps, where N = Max_range
+ 
+ In task 2, all prob is 50, which means base is
+ (100/prob) = 100/50 = 2
+
+ In 1.d, Max_range is 1000, so it takes 
+         (2+1/4)*log2(1000/2)+1/4=2.25*9+0.25
+         =20.5 steps per operation. 
+         And num_op is 10000000 here,
+         So total steps=20.5*10000000 = 205000000,
+         the average which is 206523081 matches my
+         expectation here.
+         The average size is 492, approximately 500
+         which is N/2.
+ 
+ In 1.e, Max_range is 1000, so it takes 
+         (2+1/4)*log2(1000/2)+1/4=2.25*9+0.25
+         =20.25 steps per operation. 
+         And num_op is 100000000 here,
+         So total steps=20.5*10000000=2050000000,
+         the average which is 2074169631 matches my
+         expectation here.
+         The average size is 496, approximately 500
+         which is N/2.
+ 
+ In 1.d, Max_range is 10000, so it takes 
+         (2+1/4)*log2(10000/2)=2.25*12+0.25
+         =28.5steps per operation. 
+         And num_op is 20000000 here,
+         So total steps = 28.5*20000000 = 570000000,
+         the average which is 561736116 matches my
+         expectation here.
+         The average size is 4995, approximately 
+         5000 which is N/2.
+
+ The real results are slightly larger than my
+ expectation because I didn't take counter in
+ inserting elements to newer levels  and building 
+ new levels above into account. 
+
+ Task 3. 
+ 
+  
+ 1.d:
+ -p 25:
+
+ seed1: 
+ steps = 176297940 size = 493
+
+ seed2:
+ steps = 176247053 size = 502
+
+ seed3: 
+ steps = 176217410 size = 486
+
+ seed4:
+ steps = 176435095 size = 493
+ 
+ seed5:
+ steps = 176520881 size = 487
+
+ average:
+ steps = 176343675 size = 492
+ 
+ 1.d:
+ -p 75:
+
+ seed1: 
+ steps = 375650873 size = 493
+
+ seed2:
+ steps = 366920569 size = 502
+ 
+ seed3: 
+ steps = 368134530 size = 486
+
+ seed4:
+ steps = 369445383 size = 493
+ 
+ seed5:
+ steps = 366926252 size = 487
+
+ average:
+ steps = 369415521 size = 492
+ 
+ Analysis is same as analysis for
+ task 2.
